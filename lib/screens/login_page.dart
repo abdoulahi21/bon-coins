@@ -51,8 +51,8 @@ class _LoginPageState extends State<LoginPage> {
 
               // Logo or image
               Image.asset(
-                'assets/logo.png', // Replace with your logo or use Image.network() for an online image
-                height: 150,
+                'images/Bons.png', // Replace with your logo or use Image.network() for an online image
+                height: 200,
               ),
 
               SizedBox(height: 40),

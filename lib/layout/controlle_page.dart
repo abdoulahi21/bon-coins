@@ -28,10 +28,10 @@ class _ControllePage extends State<ControllePage> {
         ),
       body: [
         HomePage(),   // Contenu de la page d'accueil
-        ProfilePage(),       // Page Profil
-        MapPage(),           // Page Carte
-        ListesPage(),        // Liste des lieux
-        SettingPage(),
+        ListesPage(),// Liste des lieux
+        MapPage(),  // Page Carte géographique
+        ProfilePage(),// Page Profil
+        SettingPage(), // Page Paramètres
       ][_selectedIndex],
         bottomNavigationBar: BottomNavigationBar(
             items: const <BottomNavigationBarItem>[
@@ -40,12 +40,22 @@ class _ControllePage extends State<ControllePage> {
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.map),
-                label: 'Map',
-              ),
-              BottomNavigationBarItem(
                 icon: Icon(Icons.list),
                 label: 'Lieux',
+              ),
+              BottomNavigationBarItem(
+                  icon: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 5.0), // Ajuste la hauteur ici
+                        child: Icon(Icons.map, color: Colors.blue),
+                      ),
+                      Text('Map', style: TextStyle(color: Colors.blue)),
+                    ],
+                  ),
+                label: ''
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
@@ -59,6 +69,7 @@ class _ControllePage extends State<ControllePage> {
             currentIndex: _selectedIndex,
             selectedItemColor: Colors.blue,
             unselectedItemColor: Colors.grey,
+            showUnselectedLabels: true,
             onTap: SetCurrentIndex,
             ),
         );

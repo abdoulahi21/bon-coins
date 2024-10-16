@@ -1,7 +1,6 @@
 import 'package:bon_coins/screens/login_page.dart';
 import 'package:flutter/material.dart';
 
-
 class SignUpPage extends StatefulWidget {
   @override
   _SignUpPageState createState() => _SignUpPageState();
@@ -24,13 +23,12 @@ class _SignUpPageState extends State<SignUpPage> {
     String email = _emailController.text;
     String password = _passwordController.text;
 
-    // Here, you can implement your sign-up logic (e.g., API call)
+    // Sign-up logic
     if (fullName.isNotEmpty &&
         phone.isNotEmpty &&
         address.isNotEmpty &&
         email.isNotEmpty &&
         password.isNotEmpty) {
-      // Success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Inscription réussie!')),
       );
@@ -44,8 +42,9 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Inscription',),
+        title: Text('Inscription'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -54,6 +53,13 @@ class _SignUpPageState extends State<SignUpPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 20),
+
+              // Logo
+              Image.asset(
+                'images/Bons.png', // Chemin vers le logo dans les assets
+                height: 200,
+              ),
+              SizedBox(height: 30),
 
               // Full Name TextField
               TextField(
@@ -153,18 +159,18 @@ class _SignUpPageState extends State<SignUpPage> {
               // Sign Up Button
               ElevatedButton(
                 onPressed: _signUp,
-                child: Text('Créer un compte',
-                style: TextStyle(color: Colors.white,
-                fontSize: 24),),
+                child: Text(
+                  'Créer un compte',
+                  style: TextStyle(color: Colors.white, fontSize: 24),
+                ),
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50), // Full width button
-                  backgroundColor:  Colors.blue, // Blue button
+                  backgroundColor: Colors.blue, // Blue button
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
-
               SizedBox(height: 20),
 
               // Already have an account?
@@ -174,8 +180,8 @@ class _SignUpPageState extends State<SignUpPage> {
                   Text('Vous avez déjà un compte?'),
                   TextButton(
                     onPressed: () {
-                      // Navigate to login page
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>LoginPage()));
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => LoginPage()));
                     },
                     child: Text(
                       'Connexion',

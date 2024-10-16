@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "454481498602",
+    "project_id": "bonscoins-cc1b7",
+    "storage_bucket": "bonscoins-cc1b7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:454481498602:android:0dd797dbcc83590bcaa293",
+        "android_client_info": {
+          "package_name": "com.example.bon_coins"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwSPABIqBJIQbMf2WSmi_9mzRJtSyrHNg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
