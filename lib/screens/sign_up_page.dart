@@ -1,6 +1,8 @@
+import 'dart:convert';
+
 import 'package:bon_coins/screens/login_page.dart';
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
 class SignUpPage extends StatefulWidget {
   @override
   _SignUpPageState createState() => _SignUpPageState();
@@ -16,22 +18,49 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isPasswordVisible = false;
 
   // Method to handle sign up logic
-  void _signUp() {
+
+  void _signUp() async {
     String fullName = _fullNameController.text;
     String phone = _phoneController.text;
     String address = _addressController.text;
     String email = _emailController.text;
     String password = _passwordController.text;
 
-    // Sign-up logic
+    // Vérification que tous les champs sont remplis
     if (fullName.isNotEmpty &&
         phone.isNotEmpty &&
         address.isNotEmpty &&
         email.isNotEmpty &&
         password.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Inscription réussie!')),
+
+      // Préparer les données pour la requête POST
+      var data = {
+        'full_name': fullName,
+        'phone': phone,
+        'address': address,
+        'email': email,
+        'password': password,
+      };
+
+      // Envoyer une requête POST à l'API Laravel
+      var response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/register'), // URL de votre API Laravel
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(data),
       );
+
+      // Vérifier la réponse de l'API
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Inscription réussie!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de l\'inscription')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Veuillez remplir tous les champs')),

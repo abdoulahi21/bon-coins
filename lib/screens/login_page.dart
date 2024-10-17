@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:bon_coins/layout/controlle_page.dart';
+import 'package:bon_coins/model/bd.dart';
 import 'package:bon_coins/screens/home_page.dart';
 import 'package:bon_coins/screens/sign_up_page.dart';
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -12,24 +15,55 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  //final TextEditingController _phoneController = TextEditingController();
 
   bool _isPasswordVisible = false;
 
-  // Method to handle login logic
-  void _login() {
+  void _login() async {
     String email = _emailController.text;
     String password = _passwordController.text;
 
     if (email.isNotEmpty && password.isNotEmpty) {
-      // Simulate a successful login for demonstration
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Connexion réussie!')),
-        //
+      // Préparer les données pour la requête POST
+      var data = {
+        'email': email,
+        'password': password,
+      };
+
+      // Envoyer une requête POST à l'API de connexion Laravel
+      var response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/login'), // URL de votre API Laravel
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(data),
       );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => ControllePage()),
-      );
+
+      // Vérifier la réponse du serveur
+      if (response.statusCode == 200) {
+        var jsonResponse = jsonDecode(response.body);
+
+        // Vérifier si la connexion est réussie
+        if (jsonResponse['status'] == 'success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Connexion réussie!')),
+          );
+
+          // Naviguer vers la page principale après connexion
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ControllePage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Échec de la connexion : ${jsonResponse['message']}')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de serveur : ${response.statusCode}')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Veuillez remplir tous les champs')),
