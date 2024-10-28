@@ -1,64 +1,42 @@
+import 'dart:convert';
+
+import 'package:bon_coins/screens/lieu_create.dart';
 import 'package:bon_coins/screens/place_details_page.dart';
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
 class ListesPage extends StatefulWidget {
   @override
   _ListesPageState createState() => _ListesPageState();
 }
-
 class _ListesPageState extends State<ListesPage> {
-  // Exemple de données de lieux
-  final List<Map<String, dynamic>> _places = [
-    {
-      'name': 'Restaurant Le Gourmet',
-      'category': 'Restaurants',
-      'distance': '2.5 km',
-      'rating': 4.5,
-      'reviews': 120,
-      'image': 'images/saly.jpeg'
-    },
-    {
-      'name': 'Parc Naturel',
-      'category': 'Parcs',
-      'distance': '3.2 km',
-      'rating': 4.7,
-      'reviews': 75,
-      'image': 'images/parc.jpeg'
-    },
-    {
-      'name': 'Musée d\'Art Moderne',
-      'category': 'Musées',
-      'distance': '1.8 km',
-      'rating': 4.8,
-      'reviews': 98,
-      'image': 'images/maison_esclave.jpeg'
-    },
-  ];
-
-  // Liste des résultats de recherche filtrés
+  List<Map<String, dynamic>> _places = [];
   List<Map<String, dynamic>> _filteredPlaces = [];
-
-  // Contrôleur pour le champ de recherche
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _filteredPlaces = _places; // Initialement, afficher tous les lieux
-    _searchController.addListener(_filterPlaces); // Ajout du listener
+    _fetchPlaces(); // Appeler l'API pour récupérer les lieux
+    _searchController.addListener(_filterPlaces);
   }
 
-  @override
-  void dispose() {
-    _searchController.removeListener(_filterPlaces);
-    _searchController.dispose();
-    super.dispose();
+  Future<void> _fetchPlaces() async {
+    final response = await http.get(Uri.parse('http://your-laravel-api-url/api/places'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        _places = data.map((place) => place as Map<String, dynamic>).toList();
+        _filteredPlaces = _places; // Initialiser les lieux filtrés
+      });
+    } else {
+      // Gérer l'erreur
+      throw Exception('Échec de chargement des lieux');
+    }
   }
 
-  // Méthode pour filtrer les lieux en fonction de la recherche
   void _filterPlaces() {
     final query = _searchController.text.toLowerCase();
-
     setState(() {
       if (query.isNotEmpty) {
         _filteredPlaces = _places.where((place) {
@@ -67,7 +45,7 @@ class _ListesPageState extends State<ListesPage> {
           return name.contains(query) || category.contains(query);
         }).toList();
       } else {
-        _filteredPlaces = _places; // Si la recherche est vide, afficher tous les lieux
+        _filteredPlaces = _places;
       }
     });
   }
@@ -75,13 +53,16 @@ class _ListesPageState extends State<ListesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text('Lieux par catégories'),
-      ),
+      appBar: AppBar(title: Text('Lieux par catégories')),
       body: Column(
         children: [
-          // Barre de recherche
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => LieuCreate()));
+            },
+            child: Text('Ajouter un lieu', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+          ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: TextField(
@@ -98,29 +79,27 @@ class _ListesPageState extends State<ListesPage> {
               ),
             ),
           ),
-
-          // Liste des lieux
           Expanded(
-            child: ListView.builder(
+            child: _filteredPlaces.isEmpty
+                ? Center(child: CircularProgressIndicator())
+                : ListView.builder(
               itemCount: _filteredPlaces.length,
               itemBuilder: (context, index) {
                 final place = _filteredPlaces[index];
                 return Card(
                   margin: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                   elevation: 5,
-                  //color: Colors.white,
                   child: ListTile(
                     contentPadding: EdgeInsets.all(10),
-                    leading: Image.asset(
+                    leading: place['image'] != null
+                        ? Image.network(
                       place['image'],
                       width: 80,
                       height: 80,
                       fit: BoxFit.cover,
-                    ),
-                    title: Text(
-                      place['name'],
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
+                    )
+                        : Container(width: 80, height: 80, color: Colors.grey),
+                    title: Text(place['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -132,7 +111,6 @@ class _ListesPageState extends State<ListesPage> {
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),
                     onTap: () {
-                      // Logique pour afficher plus de détails ou naviguer vers une page spécifique
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -150,3 +128,5 @@ class _ListesPageState extends State<ListesPage> {
     );
   }
 }
+
+
