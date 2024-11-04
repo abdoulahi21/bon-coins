@@ -1,6 +1,34 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<Map<String, dynamic>> _topRatedPlaces = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTopRatedPlaces(); // Fetch top-rated places on initialization
+  }
+
+  Future<void> _fetchTopRatedPlaces() async {
+    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/places'));
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      setState(() {
+        _topRatedPlaces = List<Map<String, dynamic>>.from(jsonData['places']);
+      });
+    } else {
+      throw Exception('Erreur lors du chargement des lieux');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,15 +44,15 @@ class HomePage extends StatelessWidget {
               child: PageView(
                 children: [
                   Image.asset(
-                    'images/maison_esclave.jpeg', // Remplace par l'image de ton choix
+                    'images/maison_esclave.jpeg',
                     fit: BoxFit.cover,
                   ),
                   Image.asset(
-                    'images/saly.jpeg', // Remplace par l'image de ton choix
+                    'images/saly.jpeg',
                     fit: BoxFit.cover,
                   ),
                   Image.asset(
-                    'images/parc.jpeg', // Remplace par l'image de ton choix
+                    'images/parc.jpeg',
                     fit: BoxFit.cover,
                   ),
                 ],
@@ -73,6 +101,50 @@ class HomePage extends StatelessWidget {
             ),
 
             SizedBox(height: 20),
+
+            // Les lieux les mieux notés
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Les lieux les mieux notés',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  _topRatedPlaces.isEmpty
+                      ? Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: _topRatedPlaces.length,
+                    itemBuilder: (context, index) {
+                      final place = _topRatedPlaces[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          leading: place['image'] != null
+                              ? Image.network(
+                            place['image'],
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Icon(Icons.image, size: 80),
+                          )
+                              : Icon(Icons.place, size: 80),
+                          title: Text(
+                            place['name'],
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text('Note: ${place['likes_count']}'),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

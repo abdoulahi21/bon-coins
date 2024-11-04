@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:bon_coins/screens/lieu_create.dart';
+import 'package:bon_coins/screens/login_page.dart';
 import 'package:bon_coins/screens/place_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 class ListesPage extends StatefulWidget {
   @override
   _ListesPageState createState() => _ListesPageState();
@@ -12,28 +14,39 @@ class _ListesPageState extends State<ListesPage> {
   List<Map<String, dynamic>> _places = [];
   List<Map<String, dynamic>> _filteredPlaces = [];
   final TextEditingController _searchController = TextEditingController();
-
+  bool _isLoggedIn = false;
+ // String? _userRole;
   @override
   void initState() {
     super.initState();
     _fetchPlaces(); // Appeler l'API pour récupérer les lieux
+    _checkLoginStatus(); // Vérifier si l'utilisateur est connecté
     _searchController.addListener(_filterPlaces);
   }
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+     // _userRole = prefs.getString('userRole');
+    });
+  }
 
-  Future<void> _fetchPlaces() async {
-    final response = await http.get(Uri.parse('http://your-laravel-api-url/api/places'));
+  void _fetchPlaces() async {
+    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/places'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+
       setState(() {
-        _places = data.map((place) => place as Map<String, dynamic>).toList();
-        _filteredPlaces = _places; // Initialiser les lieux filtrés
+        // Assurez-vous d'utiliser la clé "places" pour extraire la liste
+        _places = List<Map<String, dynamic>>.from(jsonData['places']);
+        _filteredPlaces = _places;
       });
     } else {
-      // Gérer l'erreur
-      throw Exception('Échec de chargement des lieux');
+      throw Exception('Failed to load places');
     }
   }
+
 
   void _filterPlaces() {
     final query = _searchController.text.toLowerCase();
@@ -41,8 +54,11 @@ class _ListesPageState extends State<ListesPage> {
       if (query.isNotEmpty) {
         _filteredPlaces = _places.where((place) {
           final name = place['name'].toLowerCase();
+          final description = place['description'].toLowerCase();
+          final phone = place['phone'].toLowerCase();
+          final address = place['address'].toLowerCase();
           final category = place['category'].toLowerCase();
-          return name.contains(query) || category.contains(query);
+          return name.contains(query) || category.contains(query) || description.contains(query) || phone.contains(query) || address.contains(query);
         }).toList();
       } else {
         _filteredPlaces = _places;
@@ -56,13 +72,14 @@ class _ListesPageState extends State<ListesPage> {
       appBar: AppBar(title: Text('Lieux par catégories')),
       body: Column(
         children: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => LieuCreate()));
-            },
-            child: Text('Ajouter un lieu', style: TextStyle(color: Colors.white)),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-          ),
+          if (_isLoggedIn)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => LieuCreate()));
+              },
+              child: Text('Ajouter un lieu', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: TextField(
@@ -91,22 +108,35 @@ class _ListesPageState extends State<ListesPage> {
                   elevation: 5,
                   child: ListTile(
                     contentPadding: EdgeInsets.all(10),
-                    leading: place['image'] != null
+                    leading: place['image'] != null && place['image'].isNotEmpty
                         ? Image.network(
-                      place['image'],
+                      place['image'], // URL ou chemin d'accès de l'image
                       width: 80,
                       height: 80,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, size: 80),
                     )
-                        : Container(width: 80, height: 80, color: Colors.grey),
-                    title: Text(place['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        : Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.grey,
+                      child: Icon(Icons.image, color: Colors.white), // Icône par défaut si aucune image n'est fournie
+                    ),
+                    title: Text(
+                      place['name'],
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 5),
-                        Text('${place['distance']} • ${place['rating']} ★ (${place['reviews']} avis)'),
+                        Text('Catégorie: ${place['category']}'),
+                        Text('Adresse: ${place['address']}'),
+                        Text('Téléphone: ${place['phone']}'),
+                        Text('Description: ${place['description']}'),
                         SizedBox(height: 5),
-                        Text(place['category'], style: TextStyle(color: Colors.grey)),
+                        if (place['latitude'] != null && place['longitude'] != null)
+                          Text('Localisation: ${place['latitude']}, ${place['longitude']}'),
                       ],
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),

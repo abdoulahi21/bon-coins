@@ -10,21 +10,18 @@ class LieuCreate extends StatefulWidget {
 }
 
 class _LieuCreateState extends State<LieuCreate> {
-  final _formKey = GlobalKey<FormState>();
-
-  TextEditingController nameController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
-  TextEditingController latitudeController = TextEditingController();
-  TextEditingController longitudeController = TextEditingController();
-  TextEditingController categoryController = TextEditingController();
-  TextEditingController phoneController = TextEditingController();
-  TextEditingController addressController = TextEditingController();
-  TextEditingController numberOpinionsController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _latitudeController = TextEditingController();
+  final TextEditingController _longitudeController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   File? _image;
   final picker = ImagePicker();
 
-  // Fonction pour sélectionner une image
+  // Function to pick an image from the gallery
   Future<void> _pickImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -34,37 +31,56 @@ class _LieuCreateState extends State<LieuCreate> {
     }
   }
 
-  // Fonction pour envoyer le formulaire
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    if (_nameController.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty &&
+        _latitudeController.text.isNotEmpty &&
+        _longitudeController.text.isNotEmpty &&
+        _categoryController.text.isNotEmpty &&
+        _phoneController.text.isNotEmpty &&
+        _addressController.text.isNotEmpty) {
+
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://127.0.0.1:8000//api/place'),
+        Uri.parse('http://127.0.0.1:8000/api/places'),
       );
 
-      request.fields['name'] = nameController.text;
-      request.fields['description'] = descriptionController.text;
-      request.fields['latitude'] = latitudeController.text;
-      request.fields['longitude'] = longitudeController.text;
-      request.fields['category'] = categoryController.text;
-      request.fields['phone'] = phoneController.text;
-      request.fields['address'] = addressController.text;
-      request.fields['number_opinions'] = numberOpinionsController.text;
+      request.fields['name'] = _nameController.text;
+      request.fields['description'] = _descriptionController.text;
+      request.fields['latitude'] = _latitudeController.text;
+      request.fields['longitude'] = _longitudeController.text;
+      request.fields['category'] = _categoryController.text;
+      request.fields['phone'] = _phoneController.text;
+      request.fields['address'] = _addressController.text;
 
       if (_image != null) {
         request.files.add(await http.MultipartFile.fromPath('image', _image!.path));
       }
 
-      var response = await request.send();
-      if (response.statusCode == 200) {
-        var responseData = await response.stream.bytesToString();
-        var data = jsonDecode(responseData);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lieu ajouté avec succès!')));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur lors de l\'ajout du lieu.')));
+      try {
+        var response = await request.send();
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Lieu ajouté avec succès!')),
+          );
+        } else {
+          final errorMessage = await response.stream.bytesToString();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur : $errorMessage')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la connexion au serveur : $e')),
+        );
       }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Veuillez remplir tous les champs')),
+      );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,91 +88,47 @@ class _LieuCreateState extends State<LieuCreate> {
       appBar: AppBar(
         title: Text('Ajouter un Lieu'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
             children: [
-              TextFormField(
-                controller: nameController,
+              TextField(
+                controller: _nameController,
                 decoration: InputDecoration(labelText: 'Nom du lieu'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un nom';
-                  }
-                  return null;
-                },
               ),
-              TextFormField(
-                controller: descriptionController,
+              SizedBox(height: 10),
+              TextField(
+                controller: _descriptionController,
                 decoration: InputDecoration(labelText: 'Description'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer une description';
-                  }
-                  return null;
-                },
               ),
-              TextFormField(
-                controller: latitudeController,
+              SizedBox(height: 10),
+              TextField(
+                controller: _latitudeController,
                 decoration: InputDecoration(labelText: 'Latitude'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer la latitude';
-                  }
-                  return null;
-                },
+                keyboardType: TextInputType.number,
               ),
-              TextFormField(
-                controller: longitudeController,
+              SizedBox(height: 10),
+              TextField(
+                controller: _longitudeController,
                 decoration: InputDecoration(labelText: 'Longitude'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer la longitude';
-                  }
-                  return null;
-                },
+                keyboardType: TextInputType.number,
               ),
-              TextFormField(
-                controller: categoryController,
+              SizedBox(height: 10),
+              TextField(
+                controller: _categoryController,
                 decoration: InputDecoration(labelText: 'Catégorie'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer une catégorie';
-                  }
-                  return null;
-                },
               ),
-              TextFormField(
-                controller: phoneController,
+              SizedBox(height: 10),
+              TextField(
+                controller: _phoneController,
                 decoration: InputDecoration(labelText: 'Téléphone'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un numéro de téléphone';
-                  }
-                  return null;
-                },
+                keyboardType: TextInputType.phone,
               ),
-              TextFormField(
-                controller: addressController,
+              SizedBox(height: 10),
+              TextField(
+                controller: _addressController,
                 decoration: InputDecoration(labelText: 'Adresse'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer une adresse';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: numberOpinionsController,
-                decoration: InputDecoration(labelText: 'Nombre d\'avis'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer le nombre d\'avis';
-                  }
-                  return null;
-                },
               ),
               SizedBox(height: 20),
               _image != null

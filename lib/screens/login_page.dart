@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
+  static Map<String, dynamic>? _loggedInUser;
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -45,19 +46,12 @@ class _LoginPageState extends State<LoginPage> {
 
         // Vérifier si la connexion est réussie
         if (jsonResponse['token'] != null) {
-          String token = jsonResponse['token'];
-
-          // Stocker le token localement pour des requêtes futures
+          // Stockez les informations de l'utilisateur dans SharedPreferences
           SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', token);
-
+          await prefs.setBool('isLoggedIn', true);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Connexion réussie!')),
           );
-
-          // Exemple de future requête après avoir stocké le token
-          await _fetchProtectedData(token);
-
           // Naviguer vers la page principale après connexion
           Navigator.pushReplacement(
             context,

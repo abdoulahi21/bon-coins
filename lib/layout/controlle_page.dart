@@ -22,9 +22,6 @@ class _ControllePage extends State<ControllePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Geolocalisation - Bons Coins'),
-      ),
       body: [
         HomePage(), // Contenu de la page d'accueil
         ListesPage(), // Liste des lieux
