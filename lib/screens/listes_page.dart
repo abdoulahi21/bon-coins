@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+
 import 'package:bon_coins/screens/lieu_create.dart';
 import 'package:bon_coins/screens/login_page.dart';
 import 'package:bon_coins/screens/place_details_page.dart';
@@ -44,6 +45,20 @@ class _ListesPageState extends State<ListesPage> {
       });
     } else {
       throw Exception('Failed to load places');
+    }
+  }
+
+  Future<String> getImage(String photo) async {
+    final url = 'http://127.0.0.1:8000/storage/images/$photo';
+    try {
+      final response = await http.head(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return url; // Image exists, return the URL
+      } else {
+        return 'default_image_url_here'; // Fallback image URL if image doesn't exist
+      }
+    } catch (e) {
+      return 'default_image_url_here'; // Handle errors, e.g., network issues
     }
   }
 
@@ -109,12 +124,11 @@ class _ListesPageState extends State<ListesPage> {
                   child: ListTile(
                     contentPadding: EdgeInsets.all(10),
                     leading: place['image'] != null && place['image'].isNotEmpty
-                        ? Image.network(
-                      place['image'], // URL ou chemin d'accès de l'image
+                        ? Container(
                       width: 80,
                       height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, size: 80),
+                      color: Colors.grey,
+                      child: Image.network(getImage(place['image']) as String, fit: BoxFit.cover),
                     )
                         : Container(
                       width: 80,
