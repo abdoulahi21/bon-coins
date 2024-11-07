@@ -48,19 +48,7 @@ class _ListesPageState extends State<ListesPage> {
     }
   }
 
-  Future<String> getImage(String photo) async {
-    final url = 'http://127.0.0.1:8000/storage/images/$photo';
-    try {
-      final response = await http.head(Uri.parse(url));
-      if (response.statusCode == 200) {
-        return url; // Image exists, return the URL
-      } else {
-        return 'default_image_url_here'; // Fallback image URL if image doesn't exist
-      }
-    } catch (e) {
-      return 'default_image_url_here'; // Handle errors, e.g., network issues
-    }
-  }
+
 
 
   void _filterPlaces() {
@@ -127,8 +115,11 @@ class _ListesPageState extends State<ListesPage> {
                         ? Container(
                       width: 80,
                       height: 80,
-                      color: Colors.grey,
-                      child: Image.network(getImage(place['image']) as String, fit: BoxFit.cover),
+                      child: Image.network(
+                        place['image'],
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.grey),
+                      ),
                     )
                         : Container(
                       width: 80,
@@ -155,12 +146,6 @@ class _ListesPageState extends State<ListesPage> {
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PlaceDetailsPage(place: place),
-                        ),
-                      );
                     },
                   ),
                 );

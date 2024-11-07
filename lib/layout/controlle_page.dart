@@ -47,8 +47,8 @@ class _ControllePage extends State<ControllePage> {
                 label: 'Map'
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profil',
+              icon: Icon(Icons.notification_add),
+              label: 'Notification',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings),
