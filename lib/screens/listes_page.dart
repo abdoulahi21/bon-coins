@@ -79,7 +79,6 @@ class _ListesPageState extends State<ListesPage> {
       appBar: AppBar(title: Text('Lieux par catégories')),
       body: Column(
         children: [
-          if (_isLoggedIn)
             ElevatedButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => LieuCreate()));

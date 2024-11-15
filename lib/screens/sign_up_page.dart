@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bon_coins/layout/controlle_page.dart';
 import 'package:bon_coins/model/api_response.dart';
 import 'package:bon_coins/model/user.dart';
 import 'package:bon_coins/screens/login_page.dart';
@@ -38,7 +39,7 @@ class _SignUpPageState extends State<SignUpPage> {
     SharedPreferences pref=await SharedPreferences.getInstance();
     await pref.setString('token', user.token ?? '');
     await pref.setInt('userId', user.id ?? 0);
-    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context)=>LoginPage()),(route)=>false);
+    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context)=>ControllePage()),(route)=>false);
   }
   @override
   Widget build(BuildContext context) {

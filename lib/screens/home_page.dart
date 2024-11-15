@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'package:bon_coins/model/api_response.dart';
+import 'package:bon_coins/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bon_coins/screens/login_page.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -13,19 +16,21 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _topRatedPlaces = [];
   bool _isLoggedIn = false;
+
   @override
   void initState() {
     super.initState();
     _checkLoginStatus(); // Vérifier si l'utilisateur est connecté
     _fetchTopRatedPlaces(); // Récupérer les lieux les mieux notés lors de l'initialisation
   }
+
   Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-      // _userRole = prefs.getString('userRole');
     });
   }
+
   Future<void> _fetchTopRatedPlaces() async {
     final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/places'));
 
@@ -39,11 +44,28 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Accueil'),
+        actions: [
+          PopupMenuButton(
+            icon: Icon(Icons.person),
+            onSelected: (value) {
+              if (value == logout()) {
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context)=>LoginPage()),(route)=>false);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'logout',
+                child: Text('Déconnexion'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -128,7 +150,8 @@ class _HomePageState extends State<HomePage> {
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Icon(Icons.image, size: 80),
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.image, size: 80),
                           )
                               : Icon(Icons.place, size: 80),
                           title: Text(
@@ -145,13 +168,12 @@ class _HomePageState extends State<HomePage> {
                                   // Bouton pour les likes
                                   TextButton.icon(
                                     onPressed: () {
-                                      // Action pour ajouter un like
-                                      if(_isLoggedIn){
+                                      if (_isLoggedIn) {
                                         _likePlace(place['id']);
-                                      }else{
-                                        _showSnackBar("Vous devez etre conecter pour faire un like");
+                                      } else {
+                                        _showSnackBar(
+                                            "Vous devez être connecté pour aimer.");
                                       }
-
                                     },
                                     icon: Icon(Icons.favorite, color: Colors.blue),
                                     label: Text('${place['likes_count']}'),
@@ -161,7 +183,6 @@ class _HomePageState extends State<HomePage> {
                                   // Bouton pour les commentaires
                                   TextButton.icon(
                                     onPressed: () {
-                                      // Action pour ouvrir les commentaires
                                       _openComments(place['id']);
                                     },
                                     icon: Icon(Icons.comment, color: Colors.grey),
@@ -202,6 +223,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   // Méthode pour afficher un SnackBar
   void _showSnackBar(String message) {
     final snackBar = SnackBar(
@@ -212,45 +234,35 @@ class _HomePageState extends State<HomePage> {
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+
   Future<void> _likePlace(int placeId) async {
-        final url = Uri.parse('http://127.0.0.1:8000/api/places/$placeId/likes'); // Remplacez par l'URL correcte
+    final url = Uri.parse('http://127.0.0.1:8000/api/places/$placeId/likes');
     try {
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
-          //'Authorization': 'Bearer your_access_token', // Ajoutez un token si nécessaire
         },
       );
 
       if (response.statusCode == 200) {
-        // Succès : Actualisez les données si nécessaire
         final responseData = json.decode(response.body);
-        print('Lieu $placeId liké avec succès : ${responseData['message']}');
         _showSnackBar('Lieu aimé avec succès!');
 
-        // Optionnel : Mettre à jour l'UI
         setState(() {
-          // Localement, augmentez le compteur de likes
           final place = _topRatedPlaces.firstWhere((p) => p['id'] == placeId);
           place['likes_count'] = (place['likes_count'] ?? 0) + 1;
         });
       } else {
-        // Erreur côté serveur
         final errorMessage = json.decode(response.body)['error'] ?? 'Erreur inconnue';
         _showSnackBar('Erreur : $errorMessage');
       }
     } catch (error) {
-      // Gestion des erreurs réseau
-      print('Erreur lors du like : $error');
       _showSnackBar('Erreur réseau. Vérifiez votre connexion.');
     }
   }
 
-
-  // Action pour ouvrir les commentaires
   void _openComments(int placeId) {
-    // Implémentez la logique pour ouvrir la page des commentaires
     print('Ouvrir les commentaires pour le lieu $placeId');
   }
 }

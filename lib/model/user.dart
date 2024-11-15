@@ -23,7 +23,7 @@ class User{
       phone: json['user']['phone'],
       address: json['user']['address'],
       image: json['user']['image'],
-      token: json['user']['token']
+      token: json['token']
 
     );
   }
