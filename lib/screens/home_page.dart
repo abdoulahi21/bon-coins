@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -13,11 +15,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _fetchTopRatedPlaces(); // Fetch top-rated places on initialization
+    _fetchTopRatedPlaces(); // Récupérer les lieux les mieux notés lors de l'initialisation
   }
 
   Future<void> _fetchTopRatedPlaces() async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/places'));
+    final response =
+        await http.get(Uri.parse('http://127.0.0.1:8000/api/places'));
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
@@ -39,26 +42,16 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             // Carrousel d'images
-            Container(
+            SizedBox(
               height: 200,
               child: PageView(
                 children: [
-                  Image.asset(
-                    'images/maison_esclave.jpeg',
-                    fit: BoxFit.cover,
-                  ),
-                  Image.asset(
-                    'images/saly.jpeg',
-                    fit: BoxFit.cover,
-                  ),
-                  Image.asset(
-                    'images/parc.jpeg',
-                    fit: BoxFit.cover,
-                  ),
+                  Image.asset('images/maison_esclave.jpeg', fit: BoxFit.cover),
+                  Image.asset('images/saly.jpeg', fit: BoxFit.cover),
+                  Image.asset('images/parc.jpeg', fit: BoxFit.cover),
                 ],
               ),
             ),
-
             SizedBox(height: 20),
 
             // Barre de recherche
@@ -74,7 +67,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-
             SizedBox(height: 20),
 
             // Catégories de lieux
@@ -99,7 +91,6 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-
             SizedBox(height: 20),
 
             // Les lieux les mieux notés
@@ -116,32 +107,53 @@ class _HomePageState extends State<HomePage> {
                   _topRatedPlaces.isEmpty
                       ? Center(child: CircularProgressIndicator())
                       : ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: _topRatedPlaces.length,
-                    itemBuilder: (context, index) {
-                      final place = _topRatedPlaces[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(vertical: 8),
-                        child: ListTile(
-                          leading: place['image'] != null
-                              ? Image.network(
-                            place['image'],
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Icon(Icons.image, size: 80),
-                          )
-                              : Icon(Icons.place, size: 80),
-                          title: Text(
-                            place['name'],
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text('Note: ${place['likes_count']}'),
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: _topRatedPlaces.length,
+                          itemBuilder: (context, index) {
+                            final place = _topRatedPlaces[index];
+                            return Card(
+                              margin: EdgeInsets.symmetric(vertical: 8),
+                              child: ListTile(
+                                leading: place['image'] != null
+                                    ? Image.network(
+                                        place['image'],
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(Icons.image, size: 80),
+                                      )
+                                    : Icon(Icons.place, size: 80),
+                                title: Text(
+                                  place['name'],
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Note: ${place['likes_count']}'),
+                                    SizedBox(height: 5),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.thumb_up,
+                                            color: Colors.blue),
+                                        SizedBox(width: 5),
+                                        Text('${place['likes_count']} likes'),
+                                        SizedBox(width: 20),
+                                        Icon(Icons.comment, color: Colors.grey),
+                                        SizedBox(width: 5),
+                                        Text(
+                                            '${place['comments_count']} commentaires'),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ],
               ),
             ),

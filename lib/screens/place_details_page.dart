@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class PlaceDetailsPage extends StatefulWidget {
   String placeId;
 
-  PlaceDetailsPage({required this.placeId});
+  PlaceDetailsPage({super.key, required this.placeId});
 
   @override
   _PlaceDetailsPageState createState() => _PlaceDetailsPageState();

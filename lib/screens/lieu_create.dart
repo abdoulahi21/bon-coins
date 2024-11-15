@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 
 class LieuCreate extends StatefulWidget {
+  const LieuCreate({super.key});
+
   @override
   _LieuCreateState createState() => _LieuCreateState();
 }
