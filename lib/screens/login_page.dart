@@ -1,8 +1,11 @@
 import 'dart:convert';
 
 import 'package:bon_coins/layout/controlle_page.dart';
+import 'package:bon_coins/model/api_response.dart';
+import 'package:bon_coins/model/user.dart';
 import 'package:bon_coins/screens/home_page.dart';
 import 'package:bon_coins/screens/sign_up_page.dart';
+import 'package:bon_coins/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,89 +19,51 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final GlobalKey<FormState> formkey= GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isPasswordVisible = false;
 
   // Fonction pour se connecter
-  void _login() async {
-    String email = _emailController.text;
-    String password = _passwordController.text;
-
-    if (email.isNotEmpty && password.isNotEmpty) {
-      // Préparer les données pour la requête POST
-      var data = {
-        'email': email,
-        'password': password,
-      };
-
-      // Envoyer une requête POST à l'API de connexion Laravel
-      var response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/login'), // URL de votre API Laravel
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(data),
-      );
-
-      // Vérifier la réponse du serveur
-      if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(response.body);
-
-        // Vérifier si la connexion est réussie
-        if (jsonResponse['token'] != null) {
-          // Stockez les informations de l'utilisateur dans SharedPreferences
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setBool('isLoggedIn', true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Connexion réussie!')),
-          );
-          // Naviguer vers la page principale après connexion
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => ControllePage()),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Échec de la connexion : ${jsonResponse['message']}')),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de serveur : ${response.statusCode}')),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez remplir tous les champs')),
-      );
-    }
+void loginUser() async{
+  ApiResponse response= await login(_emailController.text,_passwordController.text);
+  if(response.error==null){
+    _saveAndRedirectToHome(response.data as User);
+  }else{
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${response.error}')));
   }
 
-    @override
-    Widget build(BuildContext context) {
-      return Scaffold(
-        backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
+}
+void _saveAndRedirectToHome(User user) async{
+  SharedPreferences pref=await SharedPreferences.getInstance();
+  await pref.setString('token', user.token ?? '');
+  await pref.setInt('userId', user.id ?? 0);
+  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context)=>ControllePage()),(route)=>false);
+}
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: formkey, // Associez la clé au formulaire
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 60),
 
-                // Logo or image
+                // Logo ou image
                 Image.asset(
                   'images/Bons.png',
-                  // Replace with your logo or use Image.network() for an online image
                   height: 200,
                 ),
 
                 SizedBox(height: 40),
 
-                // Welcome text
-              const  Text(
+                // Texte d'accueil
+                const Text(
                   'Bienvenue',
                   style: TextStyle(
                     fontSize: 30,
@@ -116,8 +81,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 SizedBox(height: 30),
 
-                // Email TextField
-                TextField(
+                // Champ Email
+                TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.email),
@@ -129,11 +94,20 @@ class _LoginPageState extends State<LoginPage> {
                       borderSide: BorderSide.none,
                     ),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Veuillez entrer votre email';
+                    }
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                      return 'Veuillez entrer un email valide';
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: 20),
 
-                // Password TextField
-                TextField(
+                // Champ Mot de passe
+                TextFormField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
                   decoration: InputDecoration(
@@ -158,14 +132,23 @@ class _LoginPageState extends State<LoginPage> {
                       },
                     ),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Veuillez entrer votre mot de passe';
+                    }
+                    if (value.length < 6) {
+                      return 'Le mot de passe doit contenir au moins 6 caractères';
+                    }
+                    return null;
+                  },
                 ),
 
-                // Forgot password text button
+                // Bouton Mot de passe oublié
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      // Add "forgot password" functionality
+                      // Ajouter la fonctionnalité "Mot de passe oublié"
                     },
                     child: const Text(
                       'Mot de passe oublié ?',
@@ -176,36 +159,39 @@ class _LoginPageState extends State<LoginPage> {
 
                 SizedBox(height: 30),
 
-                // Login Button
+                // Bouton Connexion
                 ElevatedButton(
-                  onPressed: _login,
+                  onPressed:(){
+                    if(formkey.currentState!.validate()) {
+                      loginUser();
+                    }
+                    },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    minimumSize: Size(double.infinity, 50), // Full width button
+                    minimumSize: Size(double.infinity, 50), // Bouton pleine largeur
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-
-                  child: Text('Connexion',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24
-                    ),),
+                  child: Text(
+                    'Connexion',
+                    style: TextStyle(color: Colors.white, fontSize: 24),
+                  ),
                 ),
 
                 SizedBox(height: 20),
 
-                // Sign Up option
+                // Option Créer un compte
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text('Pas encore de compte ?'),
                     TextButton(
                       onPressed: () {
-                        // Navigate to sign up page
-                        Navigator.push(context, MaterialPageRoute(builder: (
-                            context) => SignUpPage()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUpPage()),
+                        );
                       },
                       child: Text(
                         'Créer un compte',
@@ -218,6 +204,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
   }
