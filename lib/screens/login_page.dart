@@ -76,18 +76,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-      // Fonction pour faire une requête à une route protégée après connexion
-     Future<String> getToken() async{
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        String? token = prefs.getString('token');
-        return token!;
-     }
-     // Fonction pour obtenir l'ID de l'utilisateur connecté
-     Future<int> getUserId() async{
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        int? id = prefs.getInt('id');
-        return id!;
-     }
     @override
     Widget build(BuildContext context) {
       return Scaffold(
