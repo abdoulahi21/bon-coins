@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       themeMode: themeProvider.themeMode,
       theme: ThemeData.light(),  // Thème clair
       darkTheme: ThemeData.dark(),  // Thème sombre
-      home: ControllePage(),
+      home: LoginPage(),
     );
   }
 }
