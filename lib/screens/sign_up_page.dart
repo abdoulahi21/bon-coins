@@ -4,6 +4,8 @@ import 'package:bon_coins/screens/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
   @override
   _SignUpPageState createState() => _SignUpPageState();
 }
@@ -188,16 +190,16 @@ class _SignUpPageState extends State<SignUpPage> {
               // Sign Up Button
               ElevatedButton(
                 onPressed: _signUp,
-                child: Text(
-                  'Créer un compte',
-                  style: TextStyle(color: Colors.white, fontSize: 24),
-                ),
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50), // Full width button
                   backgroundColor: Colors.blue, // Blue button
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
+                ),
+                child: Text(
+                  'Créer un compte',
+                  style: TextStyle(color: Colors.white, fontSize: 24),
                 ),
               ),
               SizedBox(height: 20),

@@ -11,6 +11,8 @@ class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
   static Map<String, dynamic>? _loggedInUser;
+
+  const LoginPage({super.key});
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -189,12 +191,6 @@ class _LoginPageState extends State<LoginPage> {
                 // Login Button
                 ElevatedButton(
                   onPressed: _login,
-
-                  child: Text('Connexion',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24
-                    ),),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     minimumSize: Size(double.infinity, 50), // Full width button
@@ -202,6 +198,12 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+
+                  child: Text('Connexion',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24
+                    ),),
                 ),
 
                 SizedBox(height: 20),

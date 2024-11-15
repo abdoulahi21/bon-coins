@@ -6,6 +6,8 @@ import 'package:bon_coins/screens/setting_page.dart';
 import 'package:flutter/material.dart';
 
 class ControllePage extends StatefulWidget {
+  const ControllePage({super.key});
+
   @override
   _ControllePage createState() => _ControllePage();
 }

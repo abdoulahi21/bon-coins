@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 
+import 'package:bon_coins/model/place.dart';
 import 'package:bon_coins/screens/lieu_create.dart';
 import 'package:bon_coins/screens/login_page.dart';
 import 'package:bon_coins/screens/place_details_page.dart';
@@ -8,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 class ListesPage extends StatefulWidget {
+  const ListesPage({super.key});
+
   @override
   _ListesPageState createState() => _ListesPageState();
 }
@@ -31,13 +34,14 @@ class _ListesPageState extends State<ListesPage> {
      // _userRole = prefs.getString('userRole');
     });
   }
-
+  
   void _fetchPlaces() async {
+    
     final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/places'));
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonData = json.decode(response.body);
-
+      final Map<String, dynamic> jsonData = json.decode(response.body)['places'].map((p)=>Place.fromJson(p));
+      
       setState(() {
         // Assurez-vous d'utiliser la clé "places" pour extraire la liste
         _places = List<Map<String, dynamic>>.from(jsonData['places']);
@@ -80,8 +84,8 @@ class _ListesPageState extends State<ListesPage> {
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => LieuCreate()));
               },
-              child: Text('Ajouter un lieu', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              child: Text('Ajouter un lieu', style: TextStyle(color: Colors.white)),
             ),
           Padding(
             padding: const EdgeInsets.all(10.0),
@@ -112,11 +116,11 @@ class _ListesPageState extends State<ListesPage> {
                   child: ListTile(
                     contentPadding: EdgeInsets.all(10),
                     leading: place['image'] != null && place['image'].isNotEmpty
-                        ? Container(
+                        ? SizedBox(
                       width: 80,
                       height: 80,
                       child: Image.network(
-                        place['image'],
+                         place['image'],
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.grey),
                       ),
@@ -138,10 +142,9 @@ class _ListesPageState extends State<ListesPage> {
                         Text('Catégorie: ${place['category']}'),
                         Text('Adresse: ${place['address']}'),
                         Text('Téléphone: ${place['phone']}'),
-                        Text('Description: ${place['description']}'),
-                        SizedBox(height: 5),
-                        if (place['latitude'] != null && place['longitude'] != null)
-                          Text('Localisation: ${place['latitude']}, ${place['longitude']}'),
+                        // Text('Description: ${place['description']}'),
+                        // if (place['latitude'] != null && place['longitude'] != null)
+                        //   Text('Localisation: ${place['latitude']}, ${place['longitude']}'),
                       ],
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),

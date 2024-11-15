@@ -6,6 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class MapPage extends StatefulWidget {
+  const MapPage({super.key});
+
   @override
   _MapPageState createState() => _MapPageState();
 }
@@ -58,25 +60,24 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  Future<void> getPolyPoints() async {
-    if (currentLocation == null) return;
+//   Future<void> getPolyPoints() async {
+//     if (currentLocation == null) return;
 
-    PolylinePoints polylinePoints = PolylinePoints();
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      google_api_key,
-      PointLatLng(currentLocation!.latitude, currentLocation!.longitude),
-      PointLatLng(destLocation.latitude, destLocation.longitude),
-    );
+//     // PolylinePoints polylinePoints = PolylinePoints();
+//     // PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+//     //   PointLatLng(currentLocation!.latitude, currentLocation!.longitude),
+//     //   PointLatLng(destLocation.latitude, destLocation.longitude),
+//     // );
 
-    if (result.points.isNotEmpty) {
-      setState(() {
-        polylineCoordinates.clear();
-        result.points.forEach((PointLatLng point) {
-          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-        });
-      });
-    }
-  }
+//     if (result.points.isNotEmpty) {
+//       setState(() {
+//         polylineCoordinates.clear();
+//         for (var point in result.points) {
+//           polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+//         }
+//       });
+//     }
+//   }
 
   @override
   Widget build(BuildContext context) {

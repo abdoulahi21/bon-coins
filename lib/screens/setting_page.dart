@@ -2,6 +2,8 @@ import 'package:bon_coins/layout/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 class SettingPage extends StatefulWidget {
+  const SettingPage({super.key});
+
   @override
   _SettingPageState createState() => _SettingPageState();
 }
@@ -82,12 +84,12 @@ class _SettingPageState extends State<SettingPage> {
               onChanged: _selectLanguage,
               items:const [
                 DropdownMenuItem(
-                  child: Text('Français'),
                   value: 'Français',
+                  child: Text('Français'),
                 ),
                 DropdownMenuItem(
-                  child: Text('English'),
                   value: 'English',
+                  child: Text('English'),
                 ),
               ],
             ),
