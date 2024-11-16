@@ -5,6 +5,7 @@ import 'package:bon_coins/constant.dart';
 import 'package:bon_coins/model/api_response.dart';
 import 'package:bon_coins/model/place.dart';
 import 'package:bon_coins/services/user_service.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 //create place
@@ -54,26 +55,38 @@ Future<ApiResponse> createPlace(String name,String description,String address,St
   return apiresponse;
 }
 
-//get all places
-Future<ApiResponse> getAllPlace() async{
-  ApiResponse apiresponse = ApiResponse();
-  try{
-    final response= await http.get(Uri.parse(placesUrl),
-        headers: {
-          'Accept': 'application/json'
-        },
+Future<ApiResponse> getAllPlace() async {
+  ApiResponse apiResponse = ApiResponse();
+  try {
+    final response = await http.get(
+      Uri.parse(placesUrl),
+      headers: {'Accept': 'application/json'},
     );
-    switch(response.statusCode){
+
+    switch (response.statusCode) {
       case 200:
-        apiresponse.data=jsonDecode(response.body)['pots'].map((p)=>Place.fromJson(p)).toList();
-        apiresponse.data as List<dynamic>;
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        if (responseData.containsKey('places') && responseData['places'] != null) {
+          final List<dynamic> placesData = responseData['places'];
+          apiResponse.data = placesData.map((p) => Place.fromJson(p)).toList();
+        } else {
+          apiResponse.data = []; // Renvoie une liste vide si "places" est null
+        }
         break;
+
       case 403:
-        apiresponse.error =jsonDecode(response.body)['message'];
+        apiResponse.error = jsonDecode(response.body)['message'];
         break;
+
+      default:
+        apiResponse.error = 'Erreur inattendue : ${response.statusCode}';
     }
-  }catch(e){
-    apiresponse.error= somethingWentWrong;
+  } catch (e) {
+    apiResponse.error = somethingWentWrong;
+    debugPrint('Erreur dans getAllPlace: $e'); // Pour débogage
   }
-  return apiresponse;
+
+  return apiResponse;
 }
+

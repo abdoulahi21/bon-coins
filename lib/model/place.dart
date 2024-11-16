@@ -30,15 +30,15 @@ Place({
 factory Place.fromJson(Map<String, dynamic> json){
 
   return Place(
-     id:json['place']['id'],
-     name:json['place']['name'],
-     description:json['place']['description'],
-     image:json['place']['image'],
-     category:json['place']['category'],
-     address:json['place']['address'],
-     phone:json['place']['phone'],
-     latitude:json['place']['latitude'],
-     longitude:json['place']['longitude'],
+     id:json['id'],
+     name:json['name'],
+     description:json['description'],
+     image:json['image'],
+     category:json['category'],
+     address:json['address'],
+     phone:json['phone'],
+     latitude:json['latitude'],
+     longitude:json['longitude'],
      selfLiked: json['likes'].length>0,
 
   );

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:bon_coins/model/api_response.dart';
 import 'package:bon_coins/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -15,13 +14,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _topRatedPlaces = [];
+  List<Map<String, dynamic>> _filteredPlaces = []; // Liste filtrée
+  final TextEditingController _searchController = TextEditingController();
   bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
     _checkLoginStatus(); // Vérifier si l'utilisateur est connecté
-    _fetchTopRatedPlaces(); // Récupérer les lieux les mieux notés lors de l'initialisation
+    _fetchTopRatedPlaces(); // Récupérer les lieux les mieux notés
+    _searchController.addListener(() {
+      _filterPlaces(_searchController.text.toLowerCase());
+    });
   }
 
   Future<void> _checkLoginStatus() async {
@@ -38,12 +42,32 @@ class _HomePageState extends State<HomePage> {
       final jsonData = json.decode(response.body);
       setState(() {
         _topRatedPlaces = List<Map<String, dynamic>>.from(jsonData['places']);
+        _filteredPlaces = _topRatedPlaces; // Initialiser la liste filtrée
       });
     } else {
       throw Exception('Erreur lors du chargement des lieux');
     }
   }
 
+  void _filterPlaces(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredPlaces = _topRatedPlaces; // Réinitialiser la liste filtrée
+      } else {
+        _filteredPlaces = _topRatedPlaces.where((place) {
+          final name = place['name']?.toLowerCase() ?? '';
+          final category = place['category']?.toLowerCase() ?? '';
+          return name.contains(query) || category.contains(query);
+        }).toList();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +78,11 @@ class _HomePageState extends State<HomePage> {
           PopupMenuButton(
             icon: Icon(Icons.person),
             onSelected: (value) {
-              if (value == logout()) {
-                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context)=>LoginPage()),(route)=>false);
+              if (value == 'logout') {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                      (route) => false,
+                );
               }
             },
             itemBuilder: (context) => [
@@ -87,6 +114,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
+                controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Rechercher des lieux...',
                   border: OutlineInputBorder(
@@ -133,14 +161,14 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
-                  _topRatedPlaces.isEmpty
+                  _filteredPlaces.isEmpty
                       ? Center(child: CircularProgressIndicator())
                       : ListView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
-                    itemCount: _topRatedPlaces.length,
+                    itemCount: _filteredPlaces.length,
                     itemBuilder: (context, index) {
-                      final place = _topRatedPlaces[index];
+                      final place = _filteredPlaces[index];
                       return Card(
                         margin: EdgeInsets.symmetric(vertical: 8),
                         child: ListTile(
@@ -161,11 +189,10 @@ class _HomePageState extends State<HomePage> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Note: ${place['likes_count']}'),
+                              Text('Catégorie: ${place['category']}'),
                               SizedBox(height: 5),
                               Row(
                                 children: [
-                                  // Bouton pour les likes
                                   TextButton.icon(
                                     onPressed: () {
                                       if (_isLoggedIn) {
@@ -175,18 +202,19 @@ class _HomePageState extends State<HomePage> {
                                             "Vous devez être connecté pour aimer.");
                                       }
                                     },
-                                    icon: Icon(Icons.favorite, color: Colors.blue),
+                                    icon: Icon(Icons.favorite,
+                                        color: Colors.blue),
                                     label: Text('${place['likes_count']}'),
                                   ),
                                   SizedBox(width: 10),
-
-                                  // Bouton pour les commentaires
                                   TextButton.icon(
                                     onPressed: () {
                                       _openComments(place['id']);
                                     },
-                                    icon: Icon(Icons.comment, color: Colors.grey),
-                                    label: Text('${place['comments_count']}'),
+                                    icon: Icon(Icons.comment,
+                                        color: Colors.grey),
+                                    label:
+                                    Text('${place['opinions_count']}'),
                                   ),
                                 ],
                               ),
@@ -205,7 +233,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Méthode pour créer une carte de catégorie
   Widget _buildCategoryCard(String title, IconData icon) {
     return Card(
       elevation: 5,
@@ -224,7 +251,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Méthode pour afficher un SnackBar
   void _showSnackBar(String message) {
     final snackBar = SnackBar(
       content: Text(message),
@@ -250,11 +276,13 @@ class _HomePageState extends State<HomePage> {
         _showSnackBar('Lieu aimé avec succès!');
 
         setState(() {
-          final place = _topRatedPlaces.firstWhere((p) => p['id'] == placeId);
+          final place =
+          _topRatedPlaces.firstWhere((p) => p['id'] == placeId);
           place['likes_count'] = (place['likes_count'] ?? 0) + 1;
         });
       } else {
-        final errorMessage = json.decode(response.body)['error'] ?? 'Erreur inconnue';
+        final errorMessage =
+            json.decode(response.body)['error'] ?? 'Erreur inconnue';
         _showSnackBar('Erreur : $errorMessage');
       }
     } catch (error) {

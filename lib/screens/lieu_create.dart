@@ -1,8 +1,12 @@
 import 'dart:io';
+import 'package:bon_coins/model/api_response.dart';
+import 'package:bon_coins/model/place.dart';
+import 'package:bon_coins/screens/listes_page.dart';
+import 'package:bon_coins/services/post_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-
+import 'package:bon_coins/services/user_service.dart';
 class LieuCreate extends StatefulWidget {
   const LieuCreate({super.key});
 
@@ -35,7 +39,15 @@ class _LieuCreateState extends State<LieuCreate> {
   }
 
   // Function to submit the form
-
+ void _createPlace()async{
+    String? image=_image==null ? null : getStringImage(_image);
+    ApiResponse response=await createPlace(_nameController.text, _descriptionController.text, _addressController.text, _categoryController.text, _phoneController.text,_latitudeController.text as double, _longitudeController.text as double,image!);
+    if(response.error==null){
+      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context)=>ListesPage()),(route)=>false);
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${response.error}')));
+    }
+ }
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +152,9 @@ class _LieuCreateState extends State<LieuCreate> {
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: (){
-
+                    if(formkey.currentState!.validate()){
+                      _createPlace();
+                    }
                   },
                   child: Text('Ajouter le lieu'),
                 ),
